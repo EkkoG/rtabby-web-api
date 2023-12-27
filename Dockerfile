@@ -1,8 +1,9 @@
 # syntax=docker/dockerfile:1
 FROM rust:1.73-alpine AS builder
-ARG FEATURE_FLAGS=-F mysqlclient-static -F github-login
+ARG FEATURE_FLAGS="-F mysqlclient-static -F github-login"
 WORKDIR /build
 COPY . .
+# replace | with space
 RUN if [[ "$FEATURE_FLAGS" == *"mysqlclient-static"* ]]; then \
         apk add --no-cache build-base binutils mariadb-dev musl-dev bash cmake curl && \
         bash scripts/mariadb-static-build.sh && \ 
@@ -24,7 +25,7 @@ RUN if [[ "$FEATURE_FLAGS" == *"login"* ]]; then \
     fi 
 
 
-RUN cargo build --target=x86_64-unknown-linux-musl --release $FEATURE_FLAGS
+RUN cargo build --target=x86_64-unknown-linux-musl --release $(echo "$FEATURE_FLAGS" | sed 's/|/ /g')
 
 FROM scratch
 
